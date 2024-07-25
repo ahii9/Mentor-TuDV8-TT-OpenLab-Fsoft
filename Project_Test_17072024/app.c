@@ -52,9 +52,21 @@ uint32_t count = 0;
 uint32_t distance;
 uint32_t distance_test = 100;
 bool trigger_done = false;
+bool echo_time_out = false;
 /******************************************************************************
  * Function user
  */
+void delayMs(uint32_t time, bool *Timer0_OF) {
+
+    while (time != 0) {
+        if (*Timer0_OF) {
+            time = time - 1;
+            *Timer0_OF = false;  // Đặt lại cờ Timer0_OF
+        }
+        //app_log("time = %d \n", time);
+    }
+}
+
 static sl_status_t send_data_distance(uint32_t distance);
 /**************************************************************************//**
  * Application Init.
@@ -82,54 +94,36 @@ SL_WEAK void app_process_action(void)
   // Put your additional application code here!                              //
   // This is called infinitely.                                              //
   // Do not call blocking functions from here!                               //
-  /////////////////////////////////////////////////////////////////////////////
-
-//  if (Timer0_OF == true) {
-//      count++;
-//      if (count == 100000) {
-//          GPIO_PinOutToggle(gpioPortA, 4);
-//          count = 0;
-//      }
-//      Timer0_OF = false;
-//  }
+  ///////////////////////////////////////////////////////////////////////////////
+//  GPIO_PinOutSet(gpioPortB, TRIGGER_PIN);
+//  delayMs(5000, &Timer0_OF);
+//  GPIO_PinOutClear(gpioPortB, TRIGGER_PIN);
+//  delayMs(5000, &Timer0_OF);
   app_log("start\n");
-  GPIO_PinOutGet(gpioPortB, TRIGGER_PIN);
-  while (count != 2) {
-      if(Timer0_OF == true) {
-            count++;
-            if (count == 2) {
-                GPIO_PinOutClear(gpioPortB, TRIGGER_PIN);
-                //count = 0;
-                trigger_done = true;
-            }
-            Timer0_OF = false;
-        }
-      app_log("count = %d \n",count);
-  }
+  GPIO_PinOutSet(gpioPortB, TRIGGER_PIN);
+  delayMs(200, &Timer0_OF);
+  GPIO_PinOutClear(gpioPortB, TRIGGER_PIN);
   app_log("trigger done!\n");
-  count = 0;
-  while (!GPIO_PinInGet(gpioPortB, ECHO_PIN));
-  app_log("Echo_Pin is uppped\n");
-  while (GPIO_PinInGet(gpioPortB, ECHO_PIN)) {
+  while (!GPIO_PinInGet(gpioPortB, ECHO_PIN)){
+      //app_log("",count);
       if (Timer0_OF == true) {
-          count++;
-          Timer0_OF = false;
+                      count++;
+                      Timer0_OF = false;
       }
   }
-  app_log("count = %d \n",count);
+  count = 0;
+  while (GPIO_PinInGet(gpioPortB, ECHO_PIN)) {
+              if (Timer0_OF == true) {
+                  count++;
+                  Timer0_OF = false;
+              }
+              app_log("");
+  }
   app_log("Echo_Pin is down\n");
-  distance = count * 343; // F= 10^5 hz -> count*34300*10^5 (cm)
+  distance = count * 343 / 1000; // F= 10^5 hz -> count*34300*10^5 (cm)
   app_log("distance: %d\n", distance);
   count =0;
-  while (count != 100000) {
-      if (Timer0_OF == true) {
-          count++;
-          Timer0_OF = false;
-      }
-      app_log("");
-  }
-  count = 0;
-  distance_test--;
+  echo_time_out = false;
 }
 
 /**************************************************************************//**
@@ -169,7 +163,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                          sl_bt_legacy_advertiser_connectable);
       app_assert_status(sc);
       if (sc == SL_STATUS_OK) {
-              sc = send_data_distance(distance_test);
+              sc = send_data_distance(distance);
               app_log_status_error(sc);
       }
       break;
@@ -207,7 +201,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
               // current button state stored in the local GATT table.
               app_log_info("Notification enabled.");
 
-              sc = send_data_distance(distance_test);
+              sc = send_data_distance(distance);
               app_log_status_error(sc);
             } else {
               app_log_info("Notification disabled.\n");
@@ -225,14 +219,19 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 }
 static sl_status_t send_data_distance(uint32_t distance) {
   sl_status_t sc;
-  uint32_t data_send;
-  size_t data_len;
-  data_send = distance;
+  char data_send[5];  // Mảng để lưu chuỗi 4 ký tự số + ký tự kết thúc chuỗi '\0'
+
+  // Chuyển đổi distance thành chuỗi ASCII 4 chữ số
+  snprintf(data_send, sizeof(data_send), "%04u", distance);
+
+  // Gửi dữ liệu với kích thước là độ dài của chuỗi (bao gồm ký tự kết thúc chuỗi '\0')
   sc = sl_bt_gatt_server_notify_all(gattdb_data_distance,
-                                    sizeof(data_send),
-                                    &data_send);
+                                    strlen(data_send) + 1,  // Bao gồm ký tự kết thúc chuỗi '\0'
+                                    (const uint8_t*)data_send);
   if (sc == SL_STATUS_OK) {
-      //app_log ("Send completed: %d\n", datasend);
+      //app_log ("Send completed: %s\n", data_send);
   }
+
   return sc;
 }
+

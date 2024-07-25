@@ -38,7 +38,6 @@ void Timer0_Init(void)
   TIMER_Init_TypeDef timerInit = TIMER_INIT_DEFAULT;
   //Disable timer after init
   timerInit.enable = false;
-
   //enable clock timer0
   CMU_ClockEnable(cmuClock_TIMER0, true);
 
@@ -47,7 +46,9 @@ void Timer0_Init(void)
 
   //Time top value
   uint32_t timerfreq    = CMU_ClockFreqGet(cmuClock_TIMER0) / (timerInit.prescale + 1);
+  app_log("timerfreq: %d\n", timerfreq);
   uint32_t timerTopval  = timerfreq / TIMER0_FREQUENCY;
+  app_log("timerTopval: %d\n", timerTopval);
   TIMER_TopSet(TIMER0, timerTopval);
 
   //Interrupt
@@ -83,3 +84,4 @@ void TIMER0_IRQHandler(void) {
   TIMER_IntClear(TIMER0, flags);
   Timer0_OF = true;
 }
+
