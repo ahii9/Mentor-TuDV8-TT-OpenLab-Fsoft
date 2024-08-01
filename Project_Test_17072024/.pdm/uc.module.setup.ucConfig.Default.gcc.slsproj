@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="uc.module.setup.ucConfig.com.silabs.ss.framework.project.toolchain.core.default#com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt:12.2.1.20221205.gcc" propertyScope="project">
+<project name="uc.module.setup.ucConfig.Default.gcc" propertyScope="project">
   <folder name="config">
     <folder name="btconf">
       <file name="in_place_ota_dfu.xml" generated="true" linked="false"/>
@@ -8,8 +8,8 @@
     <file name="sl_memory_config.h" generated="true" linked="false"/>
     <file name="nvm3_default_config.h" generated="true" linked="false"/>
     <file name="psa_crypto_config.h" generated="true" linked="false"/>
-    <file name="sl_device_init_dcdc_config.h" generated="true" linked="false"/>
     <file name="sl_device_init_lfrco_config.h" generated="true" linked="false"/>
+    <file name="sl_device_init_dcdc_config.h" generated="true" linked="false"/>
     <file name="sl_bluetooth_config.h" generated="true" linked="false"/>
     <file name="sl_board_control_config.h" generated="true" linked="false"/>
     <file name="app_log_config.h" generated="true" linked="false"/>

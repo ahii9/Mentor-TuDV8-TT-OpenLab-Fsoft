@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ASCII"?>
 <model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
-  <descriptors name="Project_Test_17072024">
+  <descriptors name="Project_Test_17072024_3">
     <properties key="projectCommon.sdkId" value="com.silabs.sdk.stack.super:4.4.3._-6864097"/>
     <properties key="universalConfig.relativeWorkspacePath" value="..\Project_Test_17072024.slcw"/>
     <properties key="universalConfig.generationDirectory" value=""/>
