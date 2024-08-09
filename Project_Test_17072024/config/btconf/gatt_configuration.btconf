@@ -76,14 +76,14 @@
   </service>
 
   <!--Send Data-->
-  <service advertise="false" id="send_data" name="Send Data" requirement="mandatory" sourceId="" type="primary" uuid="fd5178e2-9d80-4b21-af24-0962746e025c">
+  <service advertise="false" id="send_data" name="Send Data" requirement="mandatory" sourceId="" type="primary" uuid="0302">
 
     <!--Data distance-->
-    <characteristic const="true" id="data_distance" name="Data distance" sourceId="" uuid="5f07b7e1-e11d-455a-b59d-160262dc960c">
+    <characteristic const="false" id="data_distance" name="Data distance" sourceId="" uuid="0303">
       <value length="4" type="hex" variable_length="false">00</value>
       <properties>
         <read authenticated="false" bonded="false" encrypted="false"/>
-        <notify authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="false" bonded="false" encrypted="false"/>
       </properties>
     </characteristic>
   </service>

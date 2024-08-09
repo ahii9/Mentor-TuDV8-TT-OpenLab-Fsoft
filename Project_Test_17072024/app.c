@@ -67,7 +67,9 @@ void delayMs(uint32_t time, bool *Timer0_OF) {
     }
 }
 
-static sl_status_t send_data_distance(uint32_t distance);
+static sl_status_t send_data_distance(uint8_t connection,
+                                              uint16_t characteristic,
+                                              uint32_t distance);
 /**************************************************************************//**
  * Application Init.
  *****************************************************************************/
@@ -121,9 +123,11 @@ SL_WEAK void app_process_action(void)
   }
   app_log("Echo_Pin is down\n");
   distance = count * 343 / 1000; // F= 10^5 hz -> count*34300*10^5 (cm)
-  app_log("distance: %d\n", distance);
+  //app_log("distance: %d\n", distance);
   count =0;
   echo_time_out = false;
+  app_log("distance: %d\n", distance);
+  send_data_distance(advertising_set_handle, gattdb_data_distance, distance);
 }
 
 /**************************************************************************//**
@@ -163,7 +167,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                          sl_bt_legacy_advertiser_connectable);
       app_assert_status(sc);
       if (sc == SL_STATUS_OK) {
-              sc = send_data_distance(distance);
+//sc = send_data_distance(distance);
+          //send_data_distance(advertising_set_handle, gattdb_data_distance, distance);
               app_log_status_error(sc);
       }
       break;
@@ -171,6 +176,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
+     // send_data_distance(advertising_set_handle, gattdb_data_distance, distance);
       break;
 
     // -------------------------------
@@ -201,7 +207,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
               // current button state stored in the local GATT table.
               app_log_info("Notification enabled.");
 
-              sc = send_data_distance(distance);
+              //sc = send_data_distance(distance);
               app_log_status_error(sc);
             } else {
               app_log_info("Notification disabled.\n");
@@ -217,21 +223,28 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       break;
   }
 }
-static sl_status_t send_data_distance(uint32_t distance) {
-  sl_status_t sc;
-  char data_send[5];  // Mảng để lưu chuỗi 4 ký tự số + ký tự kết thúc chuỗi '\0'
+static sl_status_t send_data_distance(uint8_t connection,
+                                              uint16_t characteristic,
+                                              uint32_t distance) {
+    sl_status_t sc;
+    char data_send[4];  // Mảng để lưu chuỗi 4 ký tự số + ký tự kết thúc chuỗi '\0'
 
-  // Chuyển đổi distance thành chuỗi ASCII 4 chữ số
-  snprintf(data_send, sizeof(data_send), "%04u", distance);
+    // Chuyển đổi distance thành chuỗi ASCII 4 chữ số
+    snprintf(data_send, sizeof(data_send), "%04u", distance*10);
 
-  // Gửi dữ liệu với kích thước là độ dài của chuỗi (bao gồm ký tự kết thúc chuỗi '\0')
-  sc = sl_bt_gatt_server_notify_all(gattdb_data_distance,
-                                    strlen(data_send) + 1,  // Bao gồm ký tự kết thúc chuỗi '\0'
-                                    (const uint8_t*)data_send);
-  if (sc == SL_STATUS_OK) {
-      //app_log ("Send completed: %s\n", data_send);
-  }
+    // Gửi dữ liệu vào đặc tính
+    sc = sl_bt_gatt_server_write_attribute_value( characteristic, 0,
+                                              sizeof(data_send),  // Bao gồm ký tự kết thúc chuỗi '\0'
+                                               (const uint8_t*)data_send);
 
-  return sc;
+    if (sc != SL_STATUS_OK) {
+        // Xử lý lỗi nếu có
+        app_log("Write failed with status: 0x%04x\n", sc);
+    } else {
+        // Ghi thành công
+        app_log("Write succeeded: %s\n", data_send);
+    }
+
+    return sc;
 }
 
