@@ -3,7 +3,8 @@ import random
 import paho.mqtt.client as mqtt_client
 import time
 
-broker = 'broker.hivemq.com'
+# broker = 'broker.hivemq.com'
+broker = '192.168.7.2'
 port = 1883
 topic_lock = "device/lock"
 topic_canlock = "device/canlock"
@@ -11,6 +12,7 @@ topic_data = "device/data"
 topic_login = "login"
 topic_logincheck = "login/check"
 topic_datatest = "test/data"
+topic_connect ="connect"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
 # username = 'emqx'
@@ -24,6 +26,7 @@ def connect_mqtt() -> mqtt_client:
         global connected_flag
         if rc == 0:
             print("Connected to MQTT Broker!")
+            # publish(client,topic_connect,"connect")
             connected_flag = True
         else:
             print("Failed to connect, return code %d\n", rc)
@@ -40,16 +43,19 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         global lock_msg
         received_message = msg.payload.decode()
+        #test
         if msg.topic == topic_datatest:
-            print(f"Received `{received_message}` from `{topic_datatest}` topic")
+            print(f"Received `{received_message}` from `{msg.topic}` topic")
             publish(client,topic_data,msg.payload.decode())
+        #sub topic lock
         elif msg.topic == topic_lock:
             lock_msg = received_message
-            print(f"Received `{received_message}` from `{topic_datatest}` topic")
-            
+            print(f"Received `{received_message}` from `{msg.topic}` topic")
+            # check_lock(client,received_message)
+        #sub topic login
         elif msg.topic == topic_login:
-            print(f"Received `{received_message}` from `{topic_datatest}` topic")
-            # check_login(received_message)
+            print(f"Received `{received_message}` from `{msg.topic}` topic new ")
+            check_login(client,received_message)
     client.subscribe(topic_datatest)
     client.subscribe(topic_lock)
     client.subscribe(topic_login)
@@ -64,36 +70,49 @@ def publish(client, topic,msg):
         print(f"Successfully sent `{msg}` to topic `{topic}`")
     else:
         print(f"Failed to send message to topic `{topic}`")
-# def check_login(client: mqtt_client,msg:str):
-#     pubmsg = ""
-#     username,password = msg.split("/")
-#     db = open("login_data.txt","r")
-#     name =[]
-#     pw = []
-#     for i in db:
-#         a,b = i.split("/")
-#         b = b.strip()
-#         name.append(a)
-#         pw.append(b)
-#     data = dict(zip(name, pw))
-#     try:
-#         if data[username]:
-#             try:
-#                 if password == data[username]:
-#                     print("login success")
-#                     pubmsg ="success"
-#                 else:
-#                     print("incorrect")
-#                     pubmsg = "incorrect"
-#             except:
-#                 print("incorrect")
-#                 pubmsg = "incorrect"
-#         else:
-#             print("No username")
-#             pubmsg ="no username"
-#     except:
-#         print("login error")
-    
+def check_login(client: mqtt_client,msg:str):
+    pubmsg = ""
+    username,password = msg.split("/")
+    db = open("login_data.txt")
+        
+    name =[]
+    pw = []
+    for i in db:
+        a,b = i.split("/")
+        b = b.strip()
+        name.append(a)
+        pw.append(b)
+    db.close()
+    data = dict(zip(name, pw))
+    try:
+        if data[username]:
+            try:
+                if password == data[username]:
+                    print("login success")
+                    pubmsg ="success"
+                else:
+                    print("incorrect")
+                    pubmsg = "incorrect"
+            except:
+                print("incorrect")
+                pubmsg = "incorrect"
+        else:
+            print("No username")
+            pubmsg ="no username"
+    except:
+        print("no username")
+        pubmsg = "no username"
+    publish(client,topic_logincheck,pubmsg)
+def check_lock(client:mqtt_client,msg:str) :
+    user,a,b,c = msg.split("/")
+    db = open("data.txt","r+")
+    ps =[]
+    name =[]
+    for i in db:
+        nameArea,nameuser = i.split(":")
+        ps.append(nameArea)
+        
+    db.close()
 def run():
     client = connect_mqtt()
     # client.loop_start()

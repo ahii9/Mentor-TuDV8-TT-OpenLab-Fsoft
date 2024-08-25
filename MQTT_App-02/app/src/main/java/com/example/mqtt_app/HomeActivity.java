@@ -42,6 +42,8 @@ public class HomeActivity extends AppCompatActivity {
 //    private MqttMessageReceiver messageReceiver;
     private MqttManager mqttManager = MqttManager.getInstance(this);
 
+    private String username = Login_Activity.userApp ;
+
     private Button areaA;
     private Button areaB;
     private Button areaC;
@@ -112,6 +114,7 @@ public class HomeActivity extends AppCompatActivity {
 //                    Log.d(TAG,"message: " +new String(message.getPayload()));
                     String messageReceived = new String(message.getPayload());
                     if (topic.equals(Topic_data)) {
+                        dataReceived(messageReceived);
                         changeGUI(messageReceived);
                     }
 
@@ -131,11 +134,11 @@ public class HomeActivity extends AppCompatActivity {
 
         for (int i =0; i< 3; i++) {
             if(message.charAt(i) == '1') {
-                buttonList.get(i).setState(HAD_CAR);
+                buttonList.get(i).setState("HAD_CAR");
             } else if (message.charAt(i) == '0'){
-                buttonList.get(i).setState(CLEAR);
+                buttonList.get(i).setState("CLEAR");
             } else {
-                buttonList.get(i).setState(LOCKED);
+                buttonList.get(i).setState("LOCKED");
             }
             buttonList.get(i).buttonChange();
         }
@@ -148,10 +151,10 @@ public class HomeActivity extends AppCompatActivity {
             button.getButton().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (button.getState() == CLEAR) {
-                        button.setState(LOCKED);
-                    } else if (button.getState() == LOCKED){
-                        button.setState(CLEAR);
+                    if (button.getState().equals("CLEAR")) {
+                        button.setState("LOCKED");
+                    } else if (button.getState().equals("LOCKED")){
+                        button.setState("CLEAR");
                     }
                     button.buttonChange();
                 }
@@ -159,20 +162,13 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
     private void pub_LockTopic() {
-        String msg ="";
+        String msg =username;
         for (Button_Manager buttonManager : buttonList) {
-            msg += buttonManager.getState();
+            msg += "/" +buttonManager.getState();
         }
-        mqttManager.publish(Topic_Lock, msg, new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken asyncActionToken) {
-                Log.d(TAG,"Pub Success: ");
-            }
-
-            @Override
-            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                Log.d(TAG,"Pub Failed");
-            }
-        });
+        mqttManager.publish(Topic_Lock, msg);
+    }
+    private void  dataReceived(String msg) {
+        
     }
 }

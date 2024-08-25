@@ -19,7 +19,7 @@
         <LinearLayout
 
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
             <com.google.android.material.textfield.TextInputLayout
@@ -35,9 +35,9 @@
                     android:layout_height="match_parent"
 
                     android:background="@drawable/button"
-                    android:paddingLeft="20dp"
                     android:hint="Username"
                     android:inputType="text"
+                    android:paddingLeft="20dp"
                     android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -56,36 +56,36 @@
 
                     android:background="@drawable/button"
 
-                    android:hint="Nhập Mật Khẩu"
-                    android:paddingLeft="20dp"
+                    android:hint="Password"
                     android:inputType="textPassword"
+                    android:paddingLeft="20dp"
                     android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/forgot_password"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:layout_marginTop="5dp"
-                android:textSize="15dp"
-                android:layout_marginEnd="10dp"
-                android:background="?attr/selectableItemBackground"
-                android:text="Forgot password ?" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:layout_margin="15dp"
+                android:background="@android:color/background_light"
+
+                app:passwordToggleEnabled="true">
+
+                <EditText
+                    android:id="@+id/password_confirm"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:background="@drawable/button"
+
+                    android:hint="Confirm password"
+                    android:inputType="textPassword"
+                    android:paddingLeft="20dp"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <Button
-                android:id="@+id/login_button"
-                android:layout_width="200dp"
-                android:layout_height="55dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="5dp"
-                android:background="@drawable/button"
-                android:backgroundTint="@color/light_blue_600"
-                android:elevation="8dp"
-                android:text="Login" />
-            <Button
-                android:id="@+id/btndangky"
+                android:id="@+id/signup_button"
                 android:layout_width="200dp"
                 android:layout_height="55dp"
                 android:layout_gravity="center"
@@ -93,19 +93,27 @@
                 android:background="@drawable/button"
                 android:backgroundTint="@color/black"
                 android:onClick="callRegisterFromLogin"
+                android:text="Sign up"
                 android:textColor="@color/black"
-                android:text="Đăng ký"
                 app:backgroundTint="#ABACAB" />
+
+
 
 
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
-
-
-
-
+    <TextView
+        android:id="@+id/signin_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="Login"
+        android:textColor="#E49116"
+        android:textSize="16sp" />
 
 
 </LinearLayout>

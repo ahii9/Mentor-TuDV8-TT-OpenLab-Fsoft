@@ -30,6 +30,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 public class MainActivity extends AppCompatActivity {
     private static final String Topic_data = "device/data";
     private static final String Topic_state = "device/connect_state";
+    private static final String Topic_connect = "connect";
 
 
     MqttManager mqttManager = MqttManager.getInstance(this);
@@ -66,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
                 subTopic(Topic_data,0);
                 subTopic(Topic_state,0);
                 //
-                startActivity(new Intent(MainActivity.this, HomeActivity.class));
-//                startActivity(new Intent(MainActivity.this, Login_Activity.class));
+//                startActivity(new Intent(MainActivity.this, HomeActivity.class));
+                startActivity(new Intent(MainActivity.this, Login_Activity.class));
 
                 finish();
             }
@@ -85,17 +86,7 @@ public class MainActivity extends AppCompatActivity {
         connect();
     }
     private void subTopic(String topic, int qos) {
-        mqttManager.subscribe(topic, qos, new IMqttActionListener() {
-            @Override
-            public void onSuccess(IMqttToken asyncActionToken) {
-                Log.d("Mqtt","Subscribe: "+ topic +" success");
-            }
-
-            @Override
-            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                exception.printStackTrace();
-            }
-        });
+        mqttManager.subscribe(topic, qos);
     }
 
 

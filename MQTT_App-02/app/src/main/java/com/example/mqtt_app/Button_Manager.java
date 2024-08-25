@@ -4,23 +4,20 @@ import android.graphics.Color;
 import android.widget.Button;
 
 public class Button_Manager {
-    private final static int CLEAR = 0;
-    private final static int HAD_CAR = 1;
-    private final static int LOCKED = 2;
 
-    private int state;
+    private String state;
     private Button button;
 
     public Button_Manager(Button button) {
         this.button = button;
-        this.state = CLEAR;
+        this.state = "CLEAR";
     }
 
-    public int getState() {
+    public String getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(String state) {
         this.state = state;
     }
 
@@ -30,13 +27,13 @@ public class Button_Manager {
 
     public void buttonChange() {
         switch (state) {
-            case CLEAR:
+            case "CLEAR":
                 button.setBackgroundColor(Color.parseColor("#EEEEEE"));
                 break;
-            case HAD_CAR:
+            case "HAD_CAR":
                 button.setBackgroundColor(Color.parseColor("#EB6666"));
                 break;
-            case LOCKED:
+            case "LOCKED":
                 button.setBackgroundColor(Color.parseColor("#FF9800"));
                 break;
         }

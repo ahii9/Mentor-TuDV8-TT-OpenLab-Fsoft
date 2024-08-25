@@ -16,7 +16,7 @@ public class MqttManager {
     private MqttAndroidClient mqttAndroidClient;
 
     private MqttManager(Context context) {
-        String MQTT_BROKER_URL = "tcp://192.168.7.2:1883"; // Replace with your broker URL
+            String MQTT_BROKER_URL = "tcp://broker.hivemq.com:1883"; // Replace with your broker URL
         String CLIENT_ID = MqttClient.generateClientId();
         mqttAndroidClient = new MqttAndroidClient(context, MQTT_BROKER_URL, CLIENT_ID);
     }
@@ -41,22 +41,22 @@ public class MqttManager {
         }
     }
 
-    public void publish(String topic, String payload,IMqttActionListener callback) {
+    public void publish(String topic, String payload) {
         if (mqttAndroidClient != null && mqttAndroidClient.isConnected()) {
             try {
                 MqttMessage message = new MqttMessage();
                 message.setPayload(payload.getBytes());
-                mqttAndroidClient.publish(topic, message,null,callback);
+                mqttAndroidClient.publish(topic, message);
             } catch (MqttException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void subscribe(String topic, int qos, IMqttActionListener callback) {
+    public void subscribe(String topic, int qos) {
         if (mqttAndroidClient != null && mqttAndroidClient.isConnected()) {
             try {
-                mqttAndroidClient.subscribe(topic, qos, null, callback);
+                mqttAndroidClient.subscribe(topic, qos, null);
             } catch (MqttException e) {
                 e.printStackTrace();
             }
