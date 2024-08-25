@@ -3,16 +3,18 @@ import random
 import paho.mqtt.client as mqtt_client
 import time
 
-# broker = 'broker.hivemq.com'
-broker = '192.168.7.2'
+broker = 'broker.hivemq.com'
+# broker = '192.168.7.2'
 port = 1883
 topic_lock = "device/lock"
 topic_canlock = "device/canlock"
 topic_data = "device/data"
 topic_login = "login"
+topic_signup = "signup"
+topic_signupcheck = "signup/check"
 topic_logincheck = "login/check"
 topic_datatest = "test/data"
-topic_connect ="connect"
+# topic_connect ="connect"
 # Generate a Client ID with the subscribe prefix.
 client_id = f'subscribe-{random.randint(0, 100)}'
 # username = 'emqx'
@@ -54,11 +56,15 @@ def subscribe(client: mqtt_client):
             # check_lock(client,received_message)
         #sub topic login
         elif msg.topic == topic_login:
-            print(f"Received `{received_message}` from `{msg.topic}` topic new ")
+            print(f"Received `{received_message}` from `{msg.topic}` topic ")
             check_login(client,received_message)
+        elif msg.topic == topic_signup:
+            print(f"Received `{received_message}` from `{msg.topic}` topic  ")
+            check_signup(client,received_message)
     client.subscribe(topic_datatest)
     client.subscribe(topic_lock)
     client.subscribe(topic_login)
+    client.subscribe(topic_signup)
     client.on_message = on_message
 
 def publish(client, topic,msg):
@@ -74,35 +80,68 @@ def check_login(client: mqtt_client,msg:str):
     pubmsg = ""
     username,password = msg.split("/")
     db = open("login_data.txt")
-        
-    name =[]
-    pw = []
-    for i in db:
-        a,b = i.split("/")
-        b = b.strip()
-        name.append(a)
-        pw.append(b)
+    # read first character
+    first_char = db.read(1)
     db.close()
-    data = dict(zip(name, pw))
-    try:
-        if data[username]:
-            try:
-                if password == data[username]:
-                    print("login success")
-                    pubmsg ="success"
-                else:
+    if not first_char:#empty
+        pubmsg ="no username"
+    else:
+        db = open("login_data.txt")
+        name =[]
+        pw = []
+        for i in db:
+            a,b = i.split("/")
+            b = b.strip()
+            name.append(a)
+            pw.append(b)
+        db.close()
+        data = dict(zip(name, pw))
+        try:
+            if data[username]:
+                try:
+                    if password == data[username]:
+                        print("login success")
+                        pubmsg ="success"
+                    else:
+                        print("incorrect")
+                        pubmsg = "incorrect"
+                except:
                     print("incorrect")
                     pubmsg = "incorrect"
-            except:
-                print("incorrect")
-                pubmsg = "incorrect"
-        else:
-            print("No username")
-            pubmsg ="no username"
-    except:
-        print("no username")
-        pubmsg = "no username"
+            else:
+                print("No username")
+                pubmsg ="no username"
+        except:
+            print("no username")
+            pubmsg = "no username"   
     publish(client,topic_logincheck,pubmsg)
+def check_signup(client:mqtt_client,msg:str):
+    pubmsg = ""
+    username,password = msg.split("/")
+    db = open("login_data.txt","r")
+    first_char = db.read(1)
+    db.close()
+    if not first_char:#empty
+        # print("Empty")
+        db = open("login_data.txt","a")
+        db.write(username+"/"+password+"\n")
+        db.close()
+        pubmsg ="success"
+    else: 
+        db = open("login_data.txt")  
+        name =[]
+        for i in db:
+            a,b = i.split("/")
+            name.append(a)
+        db.close()
+        if username in name:
+            pubmsg = "exist"
+        else :
+            db = open("login_data.txt","a")
+            db.write(username+"/"+password+"\n")
+            pubmsg = "success"
+            db.close()
+    publish(client,topic_signupcheck,pubmsg)
 def check_lock(client:mqtt_client,msg:str) :
     user,a,b,c = msg.split("/")
     db = open("data.txt","r+")

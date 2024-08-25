@@ -22,6 +22,7 @@ public class Login_Activity extends AppCompatActivity {
     private EditText usernameInput;
     private EditText passwordInput;
     private Button loginButton;
+    private Button signupButton;
     private final static String Topic_login = "login";
     private final static String Topic_logincheck = "login/check";
 
@@ -42,10 +43,17 @@ public class Login_Activity extends AppCompatActivity {
         usernameInput = findViewById(R.id.username_input);
         passwordInput = findViewById(R.id.password_input);
         loginButton = findViewById(R.id.login_button);
+        signupButton = findViewById(R.id.signup_button);
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 performLogin();
+            }
+        });
+        signupButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(),SignUp_Activity.class));
             }
         });
     }

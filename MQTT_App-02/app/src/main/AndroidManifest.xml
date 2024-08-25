@@ -28,6 +28,7 @@
             android:name=".HomeActivity"
             />
         <activity android:name=".Login_Activity"/>
+        <activity android:name=".SignUp_Activity"/>
         <service android:name="org.eclipse.paho.android.service.MqttService" >
         </service>
         <receiver android:name="org.eclipse.paho.android.service.MqttService" android:exported="false">
