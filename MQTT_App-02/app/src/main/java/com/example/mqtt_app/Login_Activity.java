@@ -23,15 +23,11 @@ public class Login_Activity extends AppCompatActivity {
     private EditText passwordInput;
     private Button loginButton;
     private Button signupButton;
-    private final static String Topic_login = "login";
-    private final static String Topic_logincheck = "login/check";
+    private String Topic_login = "login";
 
-    public static String userApp;
+
     private MqttManager mqttManager = MqttManager.getInstance(this);
-
-    public String getUserApp() {
-        return userApp;
-    }
+    private String Topic_logincheck = "login/check/"+mqttManager.getMqttClient().getClientId();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,11 +49,14 @@ public class Login_Activity extends AppCompatActivity {
         signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(),SignUp_Activity.class));
+                Intent intent = new Intent(getApplicationContext(),SignUp_Activity.class);
+                startActivity(intent);
+
             }
         });
     }
     private void performLogin() {
+        String id = mqttManager.getMqttClient().getClientId();
         // Get the input from EditText fields
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
@@ -71,10 +70,11 @@ public class Login_Activity extends AppCompatActivity {
             passwordInput.setError("Please enter your password");
             return;
         }
-        String pub_msg = username + "/"+ password;
+        String pub_msg = id+"/"+ username + "/"+ password;
         mqttManager.publish(Topic_login, pub_msg);
-        Toast.makeText(this, "publish login ", Toast.LENGTH_SHORT).show();
+        Log.d("Pub",pub_msg);
         mqttManager.subscribe(Topic_logincheck,1);
+        Log.d("Login",Topic_logincheck);
         mqttManager.setCallback(new MqttCallback() {
             @Override
             public void connectionLost(Throwable cause) {
@@ -87,9 +87,10 @@ public class Login_Activity extends AppCompatActivity {
                 if (topic.equals(Topic_logincheck)) {
                     if (msgcheck.equals("success")) {
                         Toast.makeText(Login_Activity.this, "Login success", Toast.LENGTH_SHORT).show();
-                        userApp = username;
-                        startActivity(new Intent(Login_Activity.this,HomeActivity.class));
-                        finish();
+                        Intent intent = new Intent(Login_Activity.this,HomeActivity.class);
+                        intent.putExtra("username",username);
+                        startActivity(intent);
+//                        finish();
                     } else if (msgcheck.equals("incorrect")) {
                         Toast.makeText(Login_Activity.this, "Username or password incorrect", Toast.LENGTH_SHORT).show();
                         passwordInput.getText().clear();

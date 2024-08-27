@@ -74,7 +74,7 @@
 
         android:layout_height="wrap_content"
         android:text="Done"
-        android:background="#7DE981"
+        android:background="@color/colorGray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="50dp"

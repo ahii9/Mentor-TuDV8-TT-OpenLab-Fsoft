@@ -7,6 +7,8 @@ public class Button_Manager {
 
     private String state;
     private Button button;
+    private Boolean canEnable = true;
+    private Boolean hadChange = false;
 
     public Button_Manager(Button button) {
         this.button = button;
@@ -25,6 +27,18 @@ public class Button_Manager {
         return button;
     }
 
+    public void setCanEnable(Boolean canEnable) {
+        this.canEnable = canEnable;
+    }
+
+    public Boolean getHadChange() {
+        return hadChange;
+    }
+
+    public void setHadChange(Boolean hadChange) {
+        this.hadChange = hadChange;
+    }
+
     public void buttonChange() {
         switch (state) {
             case "CLEAR":
@@ -33,9 +47,12 @@ public class Button_Manager {
             case "HAD_CAR":
                 button.setBackgroundColor(Color.parseColor("#EB6666"));
                 break;
-            case "LOCKED":
+            default:
                 button.setBackgroundColor(Color.parseColor("#FF9800"));
                 break;
         }
+    }
+    public void enable() {
+        button.setEnabled(canEnable);
     }
 }

@@ -17,7 +17,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
+//import org.eclipse.paho.android.service.MqttAndroidClient;
+import info.mqtt.android.service.Ack;
+import info.mqtt.android.service.MqttAndroidClient;
+
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -28,7 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String Topic_data = "device/data";
+
     private static final String Topic_state = "device/connect_state";
     private static final String Topic_connect = "connect";
 
@@ -48,11 +51,32 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        initMqtt();
+//        initMqtt();
+        connect();
     }
 
     private void initMqtt() {
-        connect();
+        String clientId = MqttClient.generateClientId();
+        MqttAndroidClient client =
+                new MqttAndroidClient(this.getApplicationContext(), "tcp://broker.hivemq.com:1883",
+                        clientId, Ack.AUTO_ACK);
+
+        IMqttToken token = client.connect();
+        token.setActionCallback(new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+                // We are connected
+                Log.d("Mqtt", "onSuccess");
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                // Something went wrong e.g. connection timeout or firewall problems
+                Log.d("mqtt", "onFailure");
+
+            }
+        });
+
 
     }
     //Ham xu ly ket noi voi mqtt
@@ -64,20 +88,20 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("MQTT", "onSuccess");
                 Toast.makeText(MainActivity.this, "Connect success", Toast.LENGTH_SHORT).show();
                 //them cac topic subscribe
-                subTopic(Topic_data,0);
-                subTopic(Topic_state,0);
+
+                subTopic(Topic_state,1);
                 //
 //                startActivity(new Intent(MainActivity.this, HomeActivity.class));
                 startActivity(new Intent(MainActivity.this, Login_Activity.class));
 
-                finish();
+//                finish();
             }
 
             @Override
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                 // Something went wrong e.g. connection timeout or firewall problems
                 Log.d("MQTT", "onFailure",exception);
-                setContentView(R.layout.loading_page);
+//                setContentView(R.layout.loading_page);
             }
         });
     }

@@ -10,6 +10,7 @@ constraintlayout = "2.1.4"
 orgEclipsePahoAndroidService = "1.1.1"
 orgEclipsePahoClientMqttv3 = "1.2.5"
 workRuntimeKtx = "2.9.1"
+workRuntimeKtxVersion = "2.7.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -21,7 +22,9 @@ activity = { group = "androidx.activity", name = "activity", version.ref = "acti
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 org-eclipse-paho-android-service = { module = "org.eclipse.paho:org.eclipse.paho.android.service", version.ref = "orgEclipsePahoAndroidService" }
 org-eclipse-paho-client-mqttv3 = { module = "org.eclipse.paho:org.eclipse.paho.client.mqttv3", version.ref = "orgEclipsePahoClientMqttv3" }
+work-runtime = { module = "androidx.work:work-runtime", version.ref = "workRuntimeKtxVersion" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+work-runtime-ktx-v271 = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtxVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

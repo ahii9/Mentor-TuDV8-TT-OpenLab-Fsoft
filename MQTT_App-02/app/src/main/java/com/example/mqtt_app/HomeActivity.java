@@ -1,6 +1,6 @@
 package com.example.mqtt_app;
 
-import static android.content.ContentValues.TAG;
+import  static android.content.ContentValues.TAG;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,7 +19,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
+//import org.eclipse.paho.android.service.MqttAndroidClient;
+import info.mqtt.android.service.MqttAndroidClient;
+
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -30,6 +32,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.internal.wire.MqttReceivedMessage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
@@ -42,22 +45,24 @@ public class HomeActivity extends AppCompatActivity {
 //    private MqttMessageReceiver messageReceiver;
     private MqttManager mqttManager = MqttManager.getInstance(this);
 
-    private String username = Login_Activity.userApp ;
+    private String username ;
 
-    private Button areaA;
-    private Button areaB;
-    private Button areaC;
     private Button book,donebt;
+    private Boolean isBook = true;
+    private Boolean hadChange = false;
 
     private List<Button_Manager> buttonList;
+    List<String> listMsg;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        mqttManager.subscribe(Topic_data,1);
 //        messageReceiver = new MqttMessageReceiver();
 //
 //        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter("MQTT_MESS_RECEIVED"));
+        username = getIntent().getStringExtra("username");
         init();
         initMqtt();
 
@@ -79,10 +84,31 @@ public class HomeActivity extends AppCompatActivity {
         book.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(isBook) {
+                    isBook = false;
+                    book.setText("Back");
+                    donebt.setVisibility(View.VISIBLE);
+                    donebt.setBackgroundColor(Color.parseColor("#7DE981"));
+                    donebt.setEnabled(true);
+                    lock_area();
 
-                donebt.setVisibility(View.VISIBLE);
-                donebt.setEnabled(true);
-                lock_area();
+//                    if (hadChange) {
+//                        donebt.setBackgroundColor(Color.parseColor("#7DE981"));
+//                        donebt.setEnabled(true);
+//                    } else {
+//                        donebt.setBackgroundColor(Color.parseColor("#EEEEEE"));
+//                        donebt.setEnabled(false);
+//                    }
+                } else {
+                    isBook = true;
+                    book.setText("Book");
+                    for (Button_Manager button : buttonList) {
+                        button.getButton().setEnabled(false);
+                    }
+                    donebt.setEnabled(false);
+                    book.setEnabled(true);
+                    donebt.setVisibility(View.INVISIBLE);
+                }
             }
         });
         donebt.setOnClickListener(new View.OnClickListener() {
@@ -92,8 +118,10 @@ public class HomeActivity extends AppCompatActivity {
                     button.getButton().setEnabled(false);
                 }
                 donebt.setEnabled(false);
+                book.setEnabled(true);
                 donebt.setVisibility(View.INVISIBLE);
                 pub_LockTopic();
+                hadChange = false;
 
             }
         });
@@ -114,8 +142,8 @@ public class HomeActivity extends AppCompatActivity {
 //                    Log.d(TAG,"message: " +new String(message.getPayload()));
                     String messageReceived = new String(message.getPayload());
                     if (topic.equals(Topic_data)) {
-                        dataReceived(messageReceived);
-                        changeGUI(messageReceived);
+                        listMsg = dataReceived(messageReceived);
+                        changeGUI();
                     }
 
                 }
@@ -130,45 +158,57 @@ public class HomeActivity extends AppCompatActivity {
         }
 
     }
-    public void changeGUI(String message) {
+    public void changeGUI() {
 
         for (int i =0; i< 3; i++) {
-            if(message.charAt(i) == '1') {
+            if(listMsg.get(i).equals("had_car")) {
                 buttonList.get(i).setState("HAD_CAR");
-            } else if (message.charAt(i) == '0'){
+            } else if (listMsg.get(i).equals("clear")){
                 buttonList.get(i).setState("CLEAR");
             } else {
-                buttonList.get(i).setState("LOCKED");
+                buttonList.get(i).setState(listMsg.get(i));
+//                if (listMsg.get(i).equals(username)) {
+//                    buttonList.get(i).setCanEnable(true);
+//                } else {
+//                    buttonList.get(i).setCanEnable(false);
+//                }
             }
+
             buttonList.get(i).buttonChange();
         }
 
     }
 //
     private void lock_area() {
-        for (Button_Manager button : buttonList) {
-            button.getButton().setEnabled(true);
-            button.getButton().setOnClickListener(new View.OnClickListener() {
+        for (Button_Manager buttonManager : buttonList) {
+            buttonManager.getButton().setEnabled(true);
+            String currentState = buttonManager.getState();
+            buttonManager.getButton().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (button.getState().equals("CLEAR")) {
-                        button.setState("LOCKED");
-                    } else if (button.getState().equals("LOCKED")){
-                        button.setState("CLEAR");
+                    if (buttonManager.getState().equals("CLEAR")) {
+                        buttonManager.setState(username);
+                    } else if (buttonManager.getState().equals(username)){
+                        buttonManager.setState("CLEAR");
                     }
-                    button.buttonChange();
+                    buttonManager.buttonChange();
                 }
+
             });
+
         }
     }
     private void pub_LockTopic() {
-        String msg =username;
+        String msg ="";
         for (Button_Manager buttonManager : buttonList) {
-            msg += "/" +buttonManager.getState();
+            msg += buttonManager.getState()+"/";
         }
+        msg = msg.substring(0,msg.length()-1);
         mqttManager.publish(Topic_Lock, msg);
+        Toast.makeText(this, "pub success", Toast.LENGTH_SHORT).show();
     }
-    private void  dataReceived(String msg) {
-        
+    private List<String>  dataReceived(String msg) {
+        List<String> list = Arrays.asList(msg.split("/"));
+        return list;
     }
 }

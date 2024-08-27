@@ -17,8 +17,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class SignUp_Activity extends AppCompatActivity {
-    private final static String Topic_signup = "signup";
-    private final static String Topic_signupcheck = "signup/check";
+    private String Topic_signup = "signup";
+
     private EditText usernameInput;
     private EditText passwordInput;
     private EditText passwordConfirm;
@@ -26,7 +26,7 @@ public class SignUp_Activity extends AppCompatActivity {
     private Button signupButton;
 
     private MqttManager mqttManager = MqttManager.getInstance(this);
-
+    private String Topic_signupcheck = "signup/check/"+mqttManager.getMqttClient().getClientId();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +53,7 @@ public class SignUp_Activity extends AppCompatActivity {
         });
     }
     private void performSignup() {
+        String id = mqttManager.getMqttClient().getClientId();
         String username = usernameInput.getText().toString().trim();
         String password = passwordInput.getText().toString().trim();
         String repassword = passwordConfirm.getText().toString().trim();
@@ -74,7 +75,7 @@ public class SignUp_Activity extends AppCompatActivity {
             passwordConfirm.setError("Confirm password is not same as your password");
             return;
         } else {
-            String msg = username+"/"+password;
+            String msg = id+"/"+ username+"/"+password;
             mqttManager.publish(Topic_signup,msg);
             mqttManager.subscribe(Topic_signupcheck,1);
             mqttManager.setCallback(new MqttCallback() {
@@ -89,7 +90,9 @@ public class SignUp_Activity extends AppCompatActivity {
                     if (topic.equals(Topic_signupcheck)) {
                         if (msgcheck.equals("success")) {
                             Toast.makeText(SignUp_Activity.this, "Sign up success", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(), HomeActivity.class));
+                            Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+                            intent.putExtra("username",username);
+                            startActivity(intent);
                             finish();
                         } else if (msgcheck.equals("exist")) {
                             Toast.makeText(SignUp_Activity.this, "Username had already exist", Toast.LENGTH_SHORT).show();
