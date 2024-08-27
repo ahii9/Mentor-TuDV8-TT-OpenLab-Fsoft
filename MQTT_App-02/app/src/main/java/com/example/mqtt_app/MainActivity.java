@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                 // Something went wrong e.g. connection timeout or firewall problems
                 Log.d("MQTT", "onFailure",exception);
-//                setContentView(R.layout.loading_page);
+                setContentView(R.layout.loading_page);
             }
         });
     }

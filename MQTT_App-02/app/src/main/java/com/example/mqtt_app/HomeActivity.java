@@ -36,20 +36,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
-    private final static int CLEAR = 0;
-    private final static int HAD_CAR = 1;
-    private final static int LOCKED = 2;
+
     private static final String Topic_data = "device/data";
     private static final String Topic_state = "device/connect_state";
     private String Topic_Lock = "device/lock";
+
 //    private MqttMessageReceiver messageReceiver;
     private MqttManager mqttManager = MqttManager.getInstance(this);
 
     private String username ;
 
     private Button book,donebt;
+    private Button open;
+
+    private Boolean canOpen = false;
     private Boolean isBook = true;
-    private Boolean hadChange = false;
+    private Boolean canChange = true;
+
+    private Button selectedButton = null;
 
     private List<Button_Manager> buttonList;
     List<String> listMsg;
@@ -75,10 +79,20 @@ public class HomeActivity extends AppCompatActivity {
 
         book = findViewById(R.id.book_button);
         donebt = findViewById(R.id.done_button);
+        open = findViewById(R.id.openButton);
 
         for (Button_Manager button : buttonList) {
             button.getButton().setEnabled(false);
         }
+        if (!canOpen) {
+            open.setEnabled(false);
+            open.setVisibility(View.INVISIBLE);
+        } else {
+            open.setEnabled(true);
+            open.setVisibility(View.VISIBLE);
+        }
+
+
         donebt.setEnabled(false);
         donebt.setVisibility(View.INVISIBLE);
         book.setOnClickListener(new View.OnClickListener() {
@@ -86,21 +100,18 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(isBook) {
                     isBook = false;
+                    canChange =false;
+                    canOpen = false;
                     book.setText("Back");
                     donebt.setVisibility(View.VISIBLE);
                     donebt.setBackgroundColor(Color.parseColor("#7DE981"));
                     donebt.setEnabled(true);
                     lock_area();
-
-//                    if (hadChange) {
-//                        donebt.setBackgroundColor(Color.parseColor("#7DE981"));
-//                        donebt.setEnabled(true);
-//                    } else {
-//                        donebt.setBackgroundColor(Color.parseColor("#EEEEEE"));
-//                        donebt.setEnabled(false);
 //                    }
                 } else {
                     isBook = true;
+                    canChange = true;
+                    canOpen = true;
                     book.setText("Book");
                     for (Button_Manager button : buttonList) {
                         button.getButton().setEnabled(false);
@@ -121,8 +132,22 @@ public class HomeActivity extends AppCompatActivity {
                 book.setEnabled(true);
                 donebt.setVisibility(View.INVISIBLE);
                 pub_LockTopic();
-                hadChange = false;
-
+//                hadChange = false;
+                isBook = true;
+                canChange = true;
+                book.setText("Book");
+            }
+        });
+        open.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (Button_Manager buttonManager :buttonList) {
+                    if (buttonManager.getState().equals(username)) {
+                        buttonManager.setState("CLEAR");
+                        selectedButton = null;
+                    }
+                }
+                pub_LockTopic();
             }
         });
     }
@@ -143,7 +168,18 @@ public class HomeActivity extends AppCompatActivity {
                     String messageReceived = new String(message.getPayload());
                     if (topic.equals(Topic_data)) {
                         listMsg = dataReceived(messageReceived);
-                        changeGUI();
+                        Log.d(TAG,"message: " +new String(message.getPayload()));
+                        if (canChange) {
+                            changeGUI();
+                            for (Button_Manager buttonManager : buttonList) {
+                                if (buttonManager.getState().equals(username)) {
+                                    canOpen = true;
+                                    break;
+                                }
+                                canOpen = false;
+                            }
+                        }
+
                     }
 
                 }
@@ -161,17 +197,12 @@ public class HomeActivity extends AppCompatActivity {
     public void changeGUI() {
 
         for (int i =0; i< 3; i++) {
-            if(listMsg.get(i).equals("had_car")) {
+            if(listMsg.get(i).equals("HAD_CAR")) {
                 buttonList.get(i).setState("HAD_CAR");
-            } else if (listMsg.get(i).equals("clear")){
+            } else if (listMsg.get(i).equals("CLEAR")){
                 buttonList.get(i).setState("CLEAR");
             } else {
                 buttonList.get(i).setState(listMsg.get(i));
-//                if (listMsg.get(i).equals(username)) {
-//                    buttonList.get(i).setCanEnable(true);
-//                } else {
-//                    buttonList.get(i).setCanEnable(false);
-//                }
             }
 
             buttonList.get(i).buttonChange();
@@ -180,21 +211,37 @@ public class HomeActivity extends AppCompatActivity {
     }
 //
     private void lock_area() {
+        for (Button_Manager buttonManager :buttonList) {
+            if (buttonManager.getState().equals(username)) {
+                selectedButton = buttonManager.getButton();
+            }
+        }
         for (Button_Manager buttonManager : buttonList) {
             buttonManager.getButton().setEnabled(true);
-            String currentState = buttonManager.getState();
+
+            if (buttonManager.getState().equals(username)) {
+                selectedButton = buttonManager.getButton();
+            }
             buttonManager.getButton().setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     if (buttonManager.getState().equals("CLEAR")) {
-                        buttonManager.setState(username);
+                        if (selectedButton !=null) {
+                            Toast.makeText(HomeActivity.this, "Can choose only 1", Toast.LENGTH_SHORT).show();
+                        } else {
+                            selectedButton = buttonManager.getButton();
+                            buttonManager.setState(username);
+                        }
                     } else if (buttonManager.getState().equals(username)){
                         buttonManager.setState("CLEAR");
+                        selectedButton = null;
                     }
                     buttonManager.buttonChange();
                 }
 
             });
+
 
         }
     }
@@ -205,7 +252,7 @@ public class HomeActivity extends AppCompatActivity {
         }
         msg = msg.substring(0,msg.length()-1);
         mqttManager.publish(Topic_Lock, msg);
-        Toast.makeText(this, "pub success", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "pub success", Toast.LENGTH_SHORT).show();
     }
     private List<String>  dataReceived(String msg) {
         List<String> list = Arrays.asList(msg.split("/"));

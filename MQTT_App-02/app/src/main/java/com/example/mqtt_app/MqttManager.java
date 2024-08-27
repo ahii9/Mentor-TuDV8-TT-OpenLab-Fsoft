@@ -14,7 +14,8 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MqttManager {
-    private String MQTT_BROKER_URL = "tcp://broker.hivemq.com:1883"; // Replace with your broker URL
+//    private String MQTT_BROKER_URL = "tcp://broker.hivemq.com:1883"; // Replace with your broker URL
+    private String MQTT_BROKER_URL = "tcp://192.168.7.2:1883";
     private String CLIENT_ID = MqttClient.generateClientId();
     private static MqttManager instance;
     private MqttAndroidClient mqttAndroidClient;

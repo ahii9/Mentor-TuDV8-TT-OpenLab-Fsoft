@@ -148,8 +148,26 @@ def check_signup(client:mqtt_client,msg:str):
     publish(client,topic_signupcheck+"/"+idu,pubmsg,False)
     publish_data(client)
 def check_lock(client:mqtt_client,msg:str) :
-    db = open(datapath,"w")
-    db.write(msg)
+    str = msg.split("/")
+    str1=""
+    str2=""
+    for i in range (3):
+        if str[i] == "CLEAR":
+            str1 += "CLEAR/"
+            str2 += "CLEAR/"
+        elif str[i] == "HAD_CAR":
+            str1 += "HAD_CAR/"
+            str2 += "CLEAR/"
+        else :
+            str1 += "CLEAR/"
+            str2 += str[i] + "/"
+    str1 = str1[:-1]
+    str2 = str2[:-1]
+    db = open(datapath1,"w")
+    db.write(str1)
+    db.close()
+    db = open(datapath2,"w")
+    db.write(str2)
     db.close()
 def publish_data(client:mqtt_client) :
     db = open(datapath1)
