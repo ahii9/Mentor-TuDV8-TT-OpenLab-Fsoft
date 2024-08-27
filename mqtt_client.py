@@ -32,12 +32,10 @@ def connect_mqtt() -> mqtt_client:
         global connected_flag
         if rc == 0:
             print("Connected to MQTT Broker!")
-            # publish(client,topic_connect,"connect")
             connected_flag = True
         else:
             print("Failed to connect, return code %d\n", rc)
             connected_flag = False
-
     client = mqtt_client.Client(client_id)
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
@@ -49,7 +47,7 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         global lock_msg
         received_message = msg.payload.decode()
-        #test
+    #test
         # if msg.topic == topic_datatest:
         #     print(f"Received `{received_message}` from `{msg.topic}` topic")
         #     publish_data(client)
@@ -158,6 +156,8 @@ def publish_data(client:mqtt_client) :
     msg = db.read()
     publish(client,topic_data,msg,True)
     db.close()
+publish_topic = "test/publish"  # Topic to publish to
+
 def run():
     # try:
     client = connect_mqtt()
@@ -165,10 +165,20 @@ def run():
     # while not connected_flag:
     #     time.sleep(1)
     subscribe(client)
-    client.loop_forever() 
-    # except KeyboardInterrupt:
-    #     print("Disconnect..")
-    #     client.disconnect()
-    #     client.loop_stop()
+    # client.loop_forever() 
+    client.loop_start()
+    try:
+        while True:
+            # Publish a message every 1 second
+            publish_data(client)
+            
+            # Wait for 1 second
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Disconnecting from broker...")
+        client.loop_stop()
+        client.disconnect()
+
 if __name__ == '__main__':
+    subscribe
     run()
