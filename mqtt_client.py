@@ -13,10 +13,10 @@ topic_login = "login"
 topic_signup = "signup"
 topic_signupcheck = "signup/check"
 topic_logincheck = "login/check"
-topic_datatest = "test/data"
 # topic_connect ="connect"
 
-datapath = "data.txt"
+datapath1 = "data_real.txt"
+datapath2 = "data_book.txt"
 login_path = "login_data.txt"
 
 # Generate a Client ID with the subscribe prefix.
@@ -152,10 +152,32 @@ def check_lock(client:mqtt_client,msg:str) :
     db.write(msg)
     db.close()
 def publish_data(client:mqtt_client) :
-    db = open(datapath)
-    msg = db.read()
-    publish(client,topic_data,msg,True)
+    db = open(datapath1)
+    msg1 = db.read()
     db.close()
+    db = open(datapath2)
+    msg2 = db.read()
+    db.close()
+    msg=""
+    m1 = msg1.split("/")
+    m2 = msg2.split("/")
+    db = open(login_path)  
+    name =[]
+    for i in db:
+        a,b = i.split("/")
+        name.append(a)
+    db.close()
+    for i in range (3):
+        if m1[i] == "HAD_CAR":
+            msg += "HAD_CAR/"
+        else :
+            if (m2[i] == "CLEAR") :
+                msg+= "CLEAR/"
+            else :
+                msg += m2[i]+"/"
+    msg = msg[:-1]
+    publish(client,topic_data,msg,True)
+    
 publish_topic = "test/publish"  # Topic to publish to
 
 def run():
@@ -171,7 +193,6 @@ def run():
         while True:
             # Publish a message every 1 second
             publish_data(client)
-            
             # Wait for 1 second
             time.sleep(1)
     except KeyboardInterrupt:
