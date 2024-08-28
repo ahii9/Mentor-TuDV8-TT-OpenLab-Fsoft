@@ -195,9 +195,6 @@ def publish_data(client:mqtt_client) :
                 msg += m2[i]+"/"
     msg = msg[:-1]
     publish(client,topic_data,msg,True)
-    
-publish_topic = "test/publish"  # Topic to publish to
-
 def run():
     # try:
     client = connect_mqtt()
